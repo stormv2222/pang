@@ -11,6 +11,9 @@ const PLAYER_HALF_WIDTH = 15
 
 const WIRE_SPEED = 8
 
+const GRAVITY = 0.3
+const BOUNCE_POWER = 10
+
 // 캐릭터 부위별 Y 좌표 (FLOOR_Y 기준 위로)
 const HEAD_CENTER_Y = FLOOR_Y - 41
 const HEAD_RADIUS = 7
@@ -21,6 +24,14 @@ const ARM_END_Y = FLOOR_Y - 20
 interface Wire {
   x: number
   tipY: number
+}
+
+interface Ball {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  radius: number
 }
 
 function drawPlayer(
@@ -65,7 +76,6 @@ function drawPlayer(
   ctx.lineWidth = 3
   ctx.beginPath()
   if (isShooting) {
-    // 발사 자세: 양팔을 머리 위로
     ctx.moveTo(x, SHOULDER_Y); ctx.lineTo(x - 6, HEAD_CENTER_Y - 4)
     ctx.moveTo(x, SHOULDER_Y); ctx.lineTo(x + 6, HEAD_CENTER_Y - 4)
   } else if (isWalking) {
@@ -93,7 +103,6 @@ function drawPlayer(
 }
 
 function drawWire(ctx: CanvasRenderingContext2D, wire: Wire) {
-  // 와이어 선
   ctx.strokeStyle = '#FFD700'
   ctx.lineWidth = 2
   ctx.lineCap = 'butt'
@@ -102,7 +111,6 @@ function drawWire(ctx: CanvasRenderingContext2D, wire: Wire) {
   ctx.lineTo(wire.x, wire.tipY)
   ctx.stroke()
 
-  // 화살촉 (삼각형)
   ctx.fillStyle = '#FFD700'
   ctx.beginPath()
   ctx.moveTo(wire.x,     wire.tipY - 10)
@@ -112,11 +120,51 @@ function drawWire(ctx: CanvasRenderingContext2D, wire: Wire) {
   ctx.fill()
 }
 
+function drawBall(ctx: CanvasRenderingContext2D, ball: Ball) {
+  ctx.beginPath()
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2)
+  ctx.fillStyle = '#FF6B35'
+  ctx.fill()
+  ctx.strokeStyle = '#CC4400'
+  ctx.lineWidth = 2
+  ctx.stroke()
+}
+
+function updateBall(ball: Ball) {
+  ball.vy += GRAVITY
+  ball.x += ball.vx
+  ball.y += ball.vy
+
+  // 바닥 반사
+  if (ball.y + ball.radius >= FLOOR_Y) {
+    ball.y = FLOOR_Y - ball.radius
+    ball.vy = -BOUNCE_POWER
+  }
+  // 천장 반사
+  if (ball.y - ball.radius <= 0) {
+    ball.y = ball.radius
+    ball.vy = Math.abs(ball.vy)
+  }
+  // 왼쪽 벽 반사
+  if (ball.x - ball.radius <= 0) {
+    ball.x = ball.radius
+    ball.vx = Math.abs(ball.vx)
+  }
+  // 오른쪽 벽 반사
+  if (ball.x + ball.radius >= CANVAS_WIDTH) {
+    ball.x = CANVAS_WIDTH - ball.radius
+    ball.vx = -Math.abs(ball.vx)
+  }
+}
+
 function GameScreen() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const playerRef = useRef({ x: PLAYER_INIT_X, walkFrame: 0 })
   const pressedKeysRef = useRef(new Set<string>())
   const wireRef = useRef<Wire | null>(null)
+  const ballsRef = useRef<Ball[]>([
+    { x: 160, y: FLOOR_Y - 24, vx: 2, vy: -BOUNCE_POWER, radius: 24 },
+  ])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -143,7 +191,7 @@ function GameScreen() {
       const isShooting = wireRef.current !== null
       let isWalking = false
 
-      // 와이어 활성화 중에는 이동 불가
+      // 플레이어 이동
       if (!isShooting) {
         if (keys.has('ArrowLeft')) {
           player.x = Math.max(PLAYER_HALF_WIDTH, player.x - PLAYER_SPEED)
@@ -154,19 +202,19 @@ function GameScreen() {
           isWalking = true
         }
       }
-
       if (isWalking) player.walkFrame++
       else player.walkFrame = 0
 
       // 와이어 업데이트
       if (wireRef.current !== null) {
         wireRef.current.tipY -= WIRE_SPEED
-        if (wireRef.current.tipY <= 0) {
-          wireRef.current = null
-        }
+        if (wireRef.current.tipY <= 0) wireRef.current = null
       }
 
-      // 하늘 그라데이션
+      // 공 물리 업데이트
+      ballsRef.current.forEach(updateBall)
+
+      // 배경 렌더링
       const skyGradient = ctx.createLinearGradient(0, 0, 0, FLOOR_Y)
       skyGradient.addColorStop(0, '#4A90D9')
       skyGradient.addColorStop(0.5, '#87CEEB')
@@ -174,18 +222,17 @@ function GameScreen() {
       ctx.fillStyle = skyGradient
       ctx.fillRect(0, 0, CANVAS_WIDTH, FLOOR_Y)
 
-      // 바닥
       ctx.fillStyle = '#8B7355'
       ctx.fillRect(0, FLOOR_Y, CANVAS_WIDTH, FLOOR_HEIGHT)
 
-      // 바닥 경계선
       ctx.fillStyle = '#5C4A2A'
       ctx.fillRect(0, FLOOR_Y, CANVAS_WIDTH, 3)
 
+      // 공 렌더링
+      ballsRef.current.forEach(ball => drawBall(ctx, ball))
+
       // 와이어 렌더링
-      if (wireRef.current !== null) {
-        drawWire(ctx, wireRef.current)
-      }
+      if (wireRef.current !== null) drawWire(ctx, wireRef.current)
 
       // 플레이어 렌더링
       drawPlayer(ctx, player.x, player.walkFrame, isWalking, isShooting)
