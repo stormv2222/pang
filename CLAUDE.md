@@ -48,6 +48,13 @@ tsconfig.json     # TypeScript 프로젝트 참조 루트 (app + node 분리 구
 | 파일 | 설명 |
 |------|------|
 | `docs/PRD.md` | 게임 전체 요구사항 및 구현 범위 |
+| `docs/PLAN.md` | Phase별 개발 목표 및 계획 |
 | `docs/FEATURES/main.md` | 메인 화면 구성 |
 | `docs/FEATURES/game_rule.md` | 게임 룰 상세 (공 시스템, 플레이어, 점수 등) |
 | `docs/FEATURES/mission1.md` | Mission 1 난이도 및 스테이지별 규칙 |
+
+## 설계 문서
+
+`docs/design/` 디렉토리에 Phase별 설계 문서를 관리한다.  
+각 파일은 `phase{N}.md` 형식으로 작성되며, 개발 전 검토 후 구현에 진입한다.  
+파일 내 **검토 요청 사항** 항목을 고객이 확인하고 피드백을 준다.
