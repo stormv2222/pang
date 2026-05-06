@@ -42,3 +42,12 @@ tsconfig.json     # TypeScript 프로젝트 참조 루트 (app + node 분리 구
 
 - `tsconfig.app.json` — `src/` 대상, JSX(`react-jsx`), strict 모드
 - `tsconfig.node.json` — `vite.config.ts` 대상, Node 환경 설정
+
+## 기획 문서
+
+| 파일 | 설명 |
+|------|------|
+| `docs/PRD.md` | 게임 전체 요구사항 및 구현 범위 |
+| `docs/FEATURES/main.md` | 메인 화면 구성 |
+| `docs/FEATURES/game_rule.md` | 게임 룰 상세 (공 시스템, 플레이어, 점수 등) |
+| `docs/FEATURES/mission1.md` | Mission 1 난이도 및 스테이지별 규칙 |
