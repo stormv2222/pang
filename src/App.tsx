@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import MainScreen from './screens/MainScreen'
+import GameScreen from './screens/GameScreen'
 
 type Screen = 'main' | 'game'
 
@@ -25,9 +26,7 @@ function App() {
         <MainScreen onStart={handleStart} onQuit={handleQuit} />
       )}
       {currentScreen === 'game' && (
-        <div style={styles.gamePlaceholder}>
-          <p>Phase 2에서 구현 예정</p>
-        </div>
+        <GameScreen />
       )}
     </div>
   )
@@ -42,16 +41,6 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100vh',
     backgroundColor: '#0d0d0d',
     margin: 0,
-  },
-  gamePlaceholder: {
-    width: '640px',
-    height: '480px',
-    backgroundColor: '#1a1a2e',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#ffffff',
-    fontSize: '20px',
   },
 }
 
